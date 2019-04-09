@@ -67,7 +67,7 @@
             android:title="Walking Sensitivity" />
 
         <CheckBoxPreference
-            android:checked="false"
+            android:defaultValue="false"
             android:key="sample_ssid"
             android:title="SSID"
             android:summary="Enable SSID Sampling" />

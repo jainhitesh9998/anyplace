@@ -76,6 +76,7 @@ import com.dmsl.anyplace.googlemap.AnyPlaceMapTileProvider;
 import com.dmsl.anyplace.googlemap.MyBuildingsRenderer;
 import com.dmsl.anyplace.logger.LoggerPrefs.Action;
 import com.dmsl.anyplace.logger.LoggerWiFi.Function;
+import com.dmsl.anyplace.logger.LoggerWiFi;
 import com.dmsl.anyplace.nav.AnyPlaceSeachingHelper;
 import com.dmsl.anyplace.nav.AnyUserData;
 import com.dmsl.anyplace.nav.BuildingModel;
@@ -97,6 +98,7 @@ import com.dmsl.anyplace.utils.GeoPoint;
 import com.dmsl.anyplace.utils.NetworkUtils;
 import com.dmsl.anyplace.wifi.SimpleWifiManager;
 import com.dmsl.anyplace.wifi.WifiReceiver;
+
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -1579,6 +1581,17 @@ public class AnyplaceLoggerActivity extends SherlockFragmentActivity implements 
 			MovementDetector.setSensitivity(max - sensitivity);
 		} else if (key.equals("samples_interval")) {
 			wifi.startScan(sharedPreferences.getString("samples_interval", "1000"));
+		} else if (key.equals("sample_ssid")) {
+			Boolean sample_ssid = preferences.getBoolean(key.toString(),false);
+			LoggerWiFi.sample_ssid = sample_ssid;
+			if(sample_ssid){
+				Toast.makeText(getBaseContext(), "SSID recording Enabled", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(getBaseContext(), "SSID recording Disabled", Toast.LENGTH_SHORT).show();
+			}
+
+			Log.d("AnyplaceLoggerActivity", sample_ssid.toString());
+
 		}
 
 	}

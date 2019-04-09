@@ -61,7 +61,7 @@ public class LoggerWiFi {
 	public ArrayList<ArrayList<LogRecordMap>> mSamples = new ArrayList<ArrayList<LogRecordMap>>();
 	public boolean exceptionOccured = false;
 	public String msg;
-
+	public static boolean sample_ssid = false;
 	private Callback callback;
 	ExecutorService executorService;
 
@@ -91,7 +91,13 @@ public class LoggerWiFi {
 
 				for (int i = 0; i < wifiList.size(); i++) {
 					//todo add a condition to use ssid or not
-					LogRecordMap lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level);
+					LogRecordMap lr;
+					if(LoggerWiFi.sample_ssid){
+						lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, wifiList.get(i).SSID);
+					} else {
+						lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level);
+					}
+
 					Log.d("LoggerWifi", lr.toString());
 					records.add(lr);
 				}
