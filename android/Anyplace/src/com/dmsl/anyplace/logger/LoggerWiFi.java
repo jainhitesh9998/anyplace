@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import android.net.wifi.ScanResult;
+import android.util.Log;
 
 public class LoggerWiFi {
 
@@ -89,7 +90,9 @@ public class LoggerWiFi {
 				long timestamp = System.currentTimeMillis();
 
 				for (int i = 0; i < wifiList.size(); i++) {
+					//todo add a condition to use ssid or not
 					LogRecordMap lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level);
+					Log.d("LoggerWifi", lr.toString());
 					records.add(lr);
 				}
 				mSamples.add(records);
@@ -121,7 +124,8 @@ public class LoggerWiFi {
 	/**
 	 * it distributes the samples on the line's points.
 	 * 
-	 * @param end
+	 * @param lat
+	 * @param lng
 	 *            Ending point of the line
 	 */
 

@@ -409,7 +409,7 @@ public class AnyplaceLoggerActivity extends SherlockFragmentActivity implements 
 	/**
 	 * Sets up the map if it is possible to do so (i.e., the Google Play
 	 * services APK is correctly installed) and the map has not already been
-	 * instantiated.. This will ensure that we only ever call {@link #setUpMap()} once when {@link #mMap} is not null.
+	 * instantiated.. This will ensure that we only ever call {@link # setUpMap()} once when {@link #mMap} is not null.
 	 * <p>
 	 * If it isn't installed {@link SupportMapFragment} (and {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to install/update the Google Play services APK on
 	 * their device.

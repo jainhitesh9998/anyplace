@@ -50,9 +50,9 @@ public class AnyplaceAPI {
 	public final static Boolean FLOOR_SELECTOR = true;
 
 	// Lock Location to GPS
-	public final static Boolean LOCK_TO_GPS = false;
+	public final static Boolean LOCK_TO_GPS = true;
 	// Show Debug Messages
-	public final static Boolean DEBUG_MESSAGES = false;
+	public final static Boolean DEBUG_MESSAGES = true;
 	// Wifi and GPS Data
 	public final static Boolean DEBUG_WIFI = false;
 	// API URLS

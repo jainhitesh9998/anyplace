@@ -47,6 +47,7 @@ public class LogRecordMap implements Serializable {
 	public boolean walking;
 	public String bssid;
 	public int rss;
+	public String ssid;
 
 	public LogRecordMap(long ts, double lat, double lng, float heading, boolean walking, String bssid, int rss) {
 		super();
@@ -59,10 +60,26 @@ public class LogRecordMap implements Serializable {
 		this.rss = rss;
 	}
 
+	public LogRecordMap(long ts, double lat, double lng, float heading, boolean walking, String bssid, int rss, String ssid) {
+		super();
+		this.ts = ts;
+		this.lng = lng;
+		this.lat = lat;
+		this.heading = heading;
+		this.walking = walking;
+		this.bssid = bssid;
+		this.rss = rss;
+		this.ssid = ssid;
+	}
+
 	public String toString() {
 
 		String str;
-		str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss);
+		if (ssid==null || ssid.isEmpty()) {
+			str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss);
+		} else {
+			str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss) + " " + String.valueOf(ssid);
+		}
 		return str;
 	}
 
