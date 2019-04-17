@@ -86,6 +86,7 @@ import com.circlegate.tt.cg.an.lib.map.OnInfoWindowElemTouchListener;
 import com.dmsl.anyplace.AnyplacePrefs.Action;
 import com.dmsl.anyplace.cache.AnyplaceCache;
 import com.dmsl.anyplace.cache.BackgroundFetchListener;
+import com.dmsl.anyplace.feedback.AnyplaceFeedbackLoggerActivity;
 import com.dmsl.anyplace.floor.Algo1Radiomap;
 import com.dmsl.anyplace.floor.Algo1Server;
 import com.dmsl.anyplace.floor.FloorSelector;
@@ -716,6 +717,22 @@ public class UnifiedNavigationActivity extends SherlockFragmentActivity implemen
             public boolean onMenuItemClick(MenuItem item) {
                 Intent intent = new Intent(getApplicationContext(), AnyplaceLoggerActivity.class);
                 startActivity(intent);
+                return true;
+            }
+        });
+
+        /*
+            * Load Anyplace Feedback Module
+        */
+        final SubMenu subMenuFeedbackLogger = menu.addSubMenu("Feedback");
+        final MenuItem LoadFeedbackLogger = subMenuFeedbackLogger.getItem();
+        LoadFeedbackLogger.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+        LoadFeedbackLogger.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent intent = new Intent(getApplicationContext(), AnyplaceFeedbackLoggerActivity.class);
+                startActivity(intent);
+                Log.d("UnifiedNavActivity", "feedback activity started");
                 return true;
             }
         });

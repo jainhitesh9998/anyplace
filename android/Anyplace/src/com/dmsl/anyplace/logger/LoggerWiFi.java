@@ -62,6 +62,7 @@ public class LoggerWiFi {
 	public boolean exceptionOccured = false;
 	public String msg;
 	public static boolean sample_ssid = false;
+	private String unknownSsid = "Unknown";
 	private Callback callback;
 	ExecutorService executorService;
 
@@ -93,7 +94,13 @@ public class LoggerWiFi {
 					//todo add a condition to use ssid or not
 					LogRecordMap lr;
 					if(LoggerWiFi.sample_ssid){
-						lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, wifiList.get(i).SSID);
+						String ssid = wifiList.get(i).SSID;
+						if(ssid == null || wifiList.get(i).SSID.isEmpty()){
+							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, unknownSsid);
+						} else {
+							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, ssid);
+						}
+
 					} else {
 						lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level);
 					}
@@ -197,7 +204,13 @@ public class LoggerWiFi {
 	 * */
 	private void write_to_log(String folder_path, String filename_rss, String currentFloor, String currentBuilding) {
 
-		String header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, Floor, BUID\n";
+		String header;
+		if (!LoggerWiFi.sample_ssid){
+			header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, Floor, BUID\n";
+		} else {
+			header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, SSID, Floor, BUID\n";
+		}
+
 		LogRecordMap writeLR;
 
 		try {
