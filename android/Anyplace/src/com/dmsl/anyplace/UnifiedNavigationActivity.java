@@ -2011,6 +2011,7 @@ public class UnifiedNavigationActivity extends SherlockFragmentActivity implemen
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
+            Log.d("UnifiedNavActivity", "OnLocationChanged Called");
             userData.setLocationGPS(location);
             updateLocation();
 
@@ -2025,6 +2026,7 @@ public class UnifiedNavigationActivity extends SherlockFragmentActivity implemen
     @Override
     public void onNewLocation(final LatLng pos) {
         userData.setPositionWifi(pos.latitude, pos.longitude);
+        Log.d("UnifiedNavActivity", "OnNewLocation Called");
         this.runOnUiThread(new Runnable() {
 
             @Override
