@@ -94,6 +94,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -200,10 +201,12 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     private Algo1Radiomap floorSelector;
     private String lastFloor;
 
+    private boolean mAutomaticGPSBuildingSelection;
 //    private boolean isTrackingErrorBackground;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
+        mAutomaticGPSBuildingSelection = false;
         userData = new AnyUserData();
         isTrackingErrorBackground = true;
         super.onCreate(savedInstanceState);
@@ -242,6 +245,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                             nearest.run(buildings.iterator(), gpsMarker.getPosition().latitude,gpsMarker.getPosition().longitude, 100 );
                             if(nearest.buildings.size() > 0){
                                 //todo add loading building
+                                bypassSelectBuildingActivity(nearest.buildings.get(0));
                                 Log.d(TAG, "found buildings");
                             } else{
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(gpsMarker.getPosition(), mInitialZoomLevel));
@@ -625,6 +629,22 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         }
     }
 
+    private void loadSelectBuildingActivity(GeoPoint loc, boolean invisibleSelection) {
+
+        Intent placeIntent = new Intent(AnyplaceFeedbackLoggerActivity.this, SelectBuildingActivity.class);
+        Bundle b = new Bundle();
+
+        if (loc != null) {
+            b.putString("coordinates_lat", String.valueOf(loc.dlat));
+            b.putString("coordinates_lon", String.valueOf(loc.dlon));
+        }
+        b.putSerializable("mode", invisibleSelection ? SelectBuildingActivity.Mode.INVISIBLE : SelectBuildingActivity.Mode.NONE);
+        placeIntent.putExtras(b);
+
+        // start the activity where the user can select the building he is in
+        startActivityForResult(placeIntent, SELECT_PLACE_ACTIVITY_RESULT);
+    }
+
     @Override
     public void onConnected(Bundle bundle) {
         if (checkPlayServices()) {
@@ -703,6 +723,29 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         if (AnyplaceAPI.FLURRY_ENABLE) {
             FlurryAgent.onStartSession(this, AnyplaceAPI.FLURRY_APIKEY);
         }
+
+        Runnable checkGPS = new Runnable() {
+            @Override
+            public void run() {
+                LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                boolean statusOfGPS = manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                if (statusOfGPS == false) {
+                    AndroidUtils.showGPSSettings(AnyplaceFeedbackLoggerActivity.this);
+                }
+            }
+        };
+
+        WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        boolean isWifiOn = wifi.isWifiEnabled();
+        boolean isOnline = NetworkUtils.isOnline(AnyplaceFeedbackLoggerActivity.this);
+
+        if (!isOnline) {
+            AndroidUtils.showWifiSettings(this, "No Internet Connection", null, checkGPS);
+        } else if (!isWifiOn) {
+            AndroidUtils.showWifiSettings(this, "WiFi is disabled", null, checkGPS);
+        } else {
+            checkGPS.run();
+        }
     }
 
     @Override
@@ -736,6 +779,10 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                 gps = AnyUserData.fakeGPS();
             } else {
                 gps = new GeoPoint(location.getLatitude(), location.getLongitude());
+            }
+            if (mAutomaticGPSBuildingSelection) {
+                mAutomaticGPSBuildingSelection = false;
+                loadSelectBuildingActivity(userData.getLatestUserPosition(), true);
             }
             updateLocation(gps);
             updateLocation();
@@ -771,6 +818,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                         FloorModel f = b.getFloors().get(data.getIntExtra("fmodel", 0));
 
                         bypassSelectBuildingActivity(b, f);
+//                        selectPlaceActivityResult(b, f);
                     } catch (Exception ex) {
                         Toast.makeText(getBaseContext(), "You haven't selected both building and floor...!", Toast.LENGTH_SHORT).show();
                     }
@@ -881,8 +929,9 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     }
 
     private void bypassSelectBuildingActivity(final BuildingModel b, final FloorModel f) {
-
+        Log.d(TAG, "bypassSelectBuildingActivity called");
         final FetchFloorPlanTask fetchFloorPlanTask = new FetchFloorPlanTask(this, b.buid, f.floor_number);
+        selectPlaceActivityResult(b, f);
 
         fetchFloorPlanTask.setCallbackInterface(new FetchFloorPlanTask.FetchFloorPlanTaskListener() {
 
@@ -892,7 +941,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             public void onSuccess(String result, File floor_plan_file) {
                 if (dialog != null)
                     dialog.dismiss();
-                selectPlaceActivityResult(b, f);
             }
 
             @Override
@@ -1042,7 +1090,9 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             @Override
             public void onFinish() {
                 handleBuildingsOnMap();
+                updateLocation();
                 enableAnyplaceTracker();
+                Log.d(TAG,"Tracker Enabled at selectPlaceActivityResult on finish");
             }
 
             @Override
@@ -1056,11 +1106,14 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
             @Override
             public void onSuccess(String result) {
+
                 if (disableSuccess) {
+                    Log.d(TAG, "callback Disable success");
                     onErrorOrCancel("");
                     return;
                 }
                 enableAnyplaceTracker();
+                Log.d(TAG, "tracker enabled at selectPlaceActivityResult callback");
 
                 File root;
                 try {
@@ -1131,6 +1184,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         }
 
         if (downloadRadioMapTaskBuid != null) {
+            Log.d(TAG, "downloadRadioMapTaskBuid is not null");
             ((PreviousRunningTask) downloadRadioMapTaskBuid.getCallbackInterface()).disableSuccess();
         }
 
@@ -1176,6 +1230,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     }
 
     private void addTrackerListeners() {
+        Log.d(TAG, "Added Tracker Listeners");
 
         // sensorsMain.addListener((SensorsMain.IOrientationListener) this);
         lpTracker.addListener((AnyplaceTracker.WifiResultsAnyplaceTrackerListener) this);
@@ -1186,7 +1241,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     }
 
     private void removeTrackerListeners() {
-
+        Log.d(TAG, "Removed Tracker Listeners");
         // sensorsMain.removeListener((SensorsMain.IOrientationListener) this);
         lpTracker.removeListener((AnyplaceTracker.WifiResultsAnyplaceTrackerListener) this);
         lpTracker.removeListener((AnyplaceTracker.TrackedLocAnyplaceTrackerListener) this);

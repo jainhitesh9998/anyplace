@@ -1513,10 +1513,12 @@ public class UnifiedNavigationActivity extends SherlockFragmentActivity implemen
 
             @Override
             public void onSuccess(String result) {
+
                 if (disableSuccess) {
                     onErrorOrCancel("");
                     return;
                 }
+                Log.d("UnifiedNavActivity", "selectPlaceActivityResult_HELP2 Success");
                 // start the tracker
                 enableAnyplaceTracker();
 
