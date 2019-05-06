@@ -24,7 +24,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -43,10 +42,7 @@ import com.dmsl.anyplace.cache.AnyplaceCache;
 import com.dmsl.anyplace.cache.BackgroundFetchListener;
 import com.dmsl.anyplace.googlemap.AnyPlaceMapTileProvider;
 import com.dmsl.anyplace.googlemap.MyBuildingsRenderer;
-//import com.dmsl.anyplace.feedback.LoggerPrefs;
-import com.dmsl.anyplace.feedback.LoggerPrefs.Action;
-import com.dmsl.anyplace.logger.LoggerWiFi.Function;
-import com.dmsl.anyplace.logger.LoggerWiFi;
+import com.dmsl.anyplace.feedback.FeedbackPrefs.Action;
 import com.dmsl.anyplace.nav.AnyPlaceSeachingHelper;
 import com.dmsl.anyplace.nav.AnyUserData;
 import com.dmsl.anyplace.nav.BuildingModel;
@@ -59,7 +55,6 @@ import com.dmsl.anyplace.tasks.DownloadRadioMapTaskBuid;
 import com.dmsl.anyplace.tasks.DownloadRadioMapTaskBuid.DownloadRadioMapListener;
 import com.dmsl.anyplace.tasks.FetchFloorPlanTask;
 import com.dmsl.anyplace.tasks.FetchNearBuildingsTask;
-import com.dmsl.anyplace.tasks.UploadRSSLogTask;
 import com.dmsl.anyplace.tasks.FetchBuildingsTask.FetchBuildingsTaskListener;
 import com.dmsl.anyplace.tasks.FetchFloorsByBuidTask.FetchFloorsByBuidTaskListener;
 import com.dmsl.anyplace.utils.AndroidUtils;
@@ -112,8 +107,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity implements OnSharedPreferenceChangeListener, GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener, LocationListener, OnMapClickListener, AnyplaceTracker.TrackedLocAnyplaceTrackerListener,
         AnyplaceTracker.ErrorAnyplaceTrackerListener, AnyplaceTracker.WifiResultsAnyplaceTrackerListener {
@@ -158,14 +151,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     // TextView showing the current scan results
     private TextView scanResults;
 
-    // ProgressDialog
-    private ProgressDialog mSamplingProgressDialog;
-
-    // Path to store rss file
-    private String folder_path;
-
-    // Filename to store rss records
-    private String filename_rss;
 
     //UserData
     private AnyUserData userData = null;
@@ -209,6 +194,13 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         mAutomaticGPSBuildingSelection = false;
         userData = new AnyUserData();
         isTrackingErrorBackground = true;
+        wifi = SimpleWifiManager.getInstance();
+        // Create new receiver to get broadcasts
+        // Create new receiver to get broadcasts
+        receiverWifi = new SimpleWifiReceiver();
+        wifi.registerScan(receiverWifi);
+//        wifi.startScan(preferences.getString("samples_interval", "1000"));
+        wifi.startScan();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feedback_logger);
         textFloor = (TextView) findViewById(R.id.textFloor);
@@ -312,13 +304,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         mLocationClient = new LocationClient(this,this, this);
 
 
-        wifi = SimpleWifiManager.getInstance();
-        // Create new receiver to get broadcasts
-        // Create new receiver to get broadcasts
-        receiverWifi = new SimpleWifiReceiver();
-        wifi.registerScan(receiverWifi);
-//        wifi.startScan(preferences.getString("samples_interval", "1000"));
-        wifi.startScan();
+
         PreferenceManager.setDefaultValues(this, SHARED_PREFS_LOGGER, MODE_PRIVATE, R.xml.preferences_feedback, true);
         preferences = getSharedPreferences(SHARED_PREFS_LOGGER, MODE_PRIVATE);
         preferences.registerOnSharedPreferenceChangeListener(this);
@@ -414,6 +400,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     private void updateLocation() {
 
         GeoPoint location = userData.getLatestUserPosition();
+//        GeoPoint location = userData.getPositionWifi();
 //        Log.d(TAG, "location  " + Double.toString(location.dlat) + " " +  Double.toString(location.dlon));
         if (location != null) {
             // draw the location of the new position
@@ -587,6 +574,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                 protected Void doInBackground(Void... params) {
                     try {
                         location = AndroidUtils.getIPLocation();
+//                        location = userData.getLocationGPSorIP();
                     } catch (Exception e) {
 
                     }
@@ -650,11 +638,12 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         if (checkPlayServices()) {
             initCamera();
             SearchTypes type = AnyPlaceSeachingHelper.getSearchType(mMap.getCameraPosition().zoom);
-            if (type == SearchTypes.INDOOR_MODE) {
-                mLocationClient.removeLocationUpdates(AnyplaceFeedbackLoggerActivity.this);
-            } else if (type == SearchTypes.OUTDOOR_MODE) {
-                mLocationClient.requestLocationUpdates(mLocationRequest, AnyplaceFeedbackLoggerActivity.this);
-            }
+//            if (type == SearchTypes.INDOOR_MODE) {
+//                mLocationClient.removeLocationUpdates(AnyplaceFeedbackLoggerActivity.this);
+//            } else if (type == SearchTypes.OUTDOOR_MODE) {
+//                mLocationClient.requestLocationUpdates(mLocationRequest, AnyplaceFeedbackLoggerActivity.this);
+//            }
+            mLocationClient.requestLocationUpdates(mLocationRequest, AnyplaceFeedbackLoggerActivity.this);
             Location currentLocation = mLocationClient.getLastLocation();
             // we must set listener to the get the first location from the API
             // it will trigger the onLocationChanged below when a new location
@@ -792,8 +781,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     @Override
     public void onMapClick(LatLng latLng) {
         updateMarker(latLng);
-//        updateLocation(currLocation);
-//        updateLocation();
 //        updateInfoView();
 
     }
@@ -835,7 +822,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                 break;
             case PREFERENCES_ACTIVITY_RESULT:
                 if (resultCode == RESULT_OK) {
-                    LoggerPrefs.Action result = (Action) data.getSerializableExtra("action");
+                    FeedbackPrefs.Action result = (Action) data.getSerializableExtra("action");
 
                     switch (result) {
                         case REFRESH_BUILDING:
@@ -992,7 +979,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getSupportMenuInflater();
-        inflater.inflate(R.menu.main_menu_logger, menu);
+        inflater.inflate(R.menu.main_menu_feedback, menu);
 
         return true;
     }
@@ -1005,11 +992,8 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.main_menu_upload_rsslog: {
-//                uploadRSSLog();
-                return true;
-            }
-            case R.id.main_menu_loadmap: {
+
+            case R.id.feed_back_main_menu_loadmap: {
                 // start the activity where the user can select the building
 //                if (mIsSamplingActive) {
 //                    Toast.makeText(this, "Invalid during logging.", Toast.LENGTH_LONG).show();
@@ -1033,7 +1017,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                 startActivityForResult(placeIntent, SELECT_PLACE_ACTIVITY_RESULT);
                 return true;
             }
-            case R.id.main_menu_clear_logging: {
+            case R.id.feed_back_main_menu_clear_logging: {
                 if (mCurrentBuilding == null)
                     Toast.makeText(getBaseContext(), "Load a map before tracking can be used!", Toast.LENGTH_SHORT).show();
                 else {
@@ -1047,17 +1031,17 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             }
 
             // Launch preferences
-            case R.id.main_menu_preferences: {
-                Intent i = new Intent(this, LoggerPrefs.class);
+            case R.id.feed_back_main_menu_preferences: {
+                Intent i = new Intent(this, FeedbackPrefs.class);
                 startActivityForResult(i, PREFERENCES_ACTIVITY_RESULT);
                 return true;
             }
-            case R.id.main_menu_about: {
+            case R.id.feed_back_main_menu_about: {
                 startActivity(new Intent(AnyplaceFeedbackLoggerActivity.this, AnyplaceAboutActivity.class));
                 return true;
             }
 
-            case R.id.main_menu_exit: {
+            case R.id.feed_back_main_menu_exit: {
                 this.finish();
                 System.gc();
             }
@@ -1083,13 +1067,16 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         userIsNearby = false;
         textFloor.setText(f.floor_name);
         disableAnyplaceTracker();
-
+        userData.setSelectedBuilding(b);
+        userData.setSelectedFloor(f);
         loadMapBasicLayer(b, f);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(b.getPosition(), 19.0f), new CancelableCallback() {
 
             @Override
             public void onFinish() {
                 handleBuildingsOnMap();
+                GeoPoint location = userData.getLocationGPSorIP();
+                updateLocation(location);
                 updateLocation();
                 enableAnyplaceTracker();
                 Log.d(TAG,"Tracker Enabled at selectPlaceActivityResult on finish");
@@ -1120,7 +1107,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                     root = AnyplaceUtils.getRadioMapFoler(AnyplaceFeedbackLoggerActivity.this, mCurrentBuilding.buid, mCurrentFloor.floor_number);
                     File f = new File(root, AnyplaceUtils.getRadioMapFileName(mCurrentFloor.floor_number));
 
-                    new HeatmapTask().execute(f);
+//                    new HeatmapTask().execute(f);
                 } catch (Exception e) {
                     Log.d(TAG,"Radio Map Not Downloaded");
                 }
@@ -1349,54 +1336,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
     }
 
-    //
-    // The receiver of the result after processing a WiFi ScanResult previously
-    // by WiFiReceiver
-    //
-    public class AnyPlaceLoggerReceiver implements LoggerWiFi.Callback {
-
-        public double dist(double lat1, double lon1, double lat2, double lon2) {
-            double dLat;
-            double dLon;
-
-            int R = 6371; // Km
-            dLat = (lat2 - lat1) * Math.PI / 180;
-            dLon = (lon2 - lon1) * Math.PI / 180;
-            lat1 = lat1 * Math.PI / 180;
-            lat2 = lat2 * Math.PI / 180;
-
-            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            double d = R * c;
-
-            return d;
-
-        }
-
-        public double dist(LatLng latlng1, LatLng latlng2) {
-            double lat1 = latlng1.latitude;
-            double lon1 = latlng1.longitude;
-            double lat2 = latlng2.latitude;
-            double lon2 = latlng2.longitude;
-
-            return dist(lat1, lon1, lat2, lon2);
-        }
-
-        private void draw(LatLng latlng, int sum) {
-            CircleOptions options = new CircleOptions();
-            options.center(latlng);
-            options.radius(0.5 + sum * 0.05);
-            options.fillColor(android.graphics.Color.BLUE);
-            options.strokeWidth(3);
-            // Display above floor image
-            options.zIndex(2);
-            mMap.addCircle(options);
-        }
-
-        @Override
-        public void onFinish(LoggerWiFi logger, Function function) {
-        }
-    }
 
     //
     // The WifiReceiver is responsible to Receive Access Points results
@@ -1425,31 +1364,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         }
     }
 
-    private class HeatmapTask extends AsyncTask<File, Integer, Collection<WeightedLatLng>> {
-
-        public HeatmapTask() {
-
-        }
-
-        @Override
-        protected Collection<WeightedLatLng> doInBackground(File... params) {
-            return RadioMap.readRadioMapLocations(params[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Collection<WeightedLatLng> result) {
-            // Check if need to instantiate (avoid setData etc
-            // twice)
-            if (mProvider == null) {
-                mProvider = new HeatmapTileProvider.Builder().weightedData(result).build();
-            } else {
-                mProvider.setWeightedData(result);
-            }
-
-            TileOverlay mHeapOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider).zIndex(1));
-        }
-
-    }
     interface PreviousRunningTask {
         void disableSuccess();
     }

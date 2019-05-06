@@ -151,7 +151,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.dmsl.anyplace.feedback.LoggerPrefs"
+            android:name="com.dmsl.anyplace.feedback.FeedbackPrefs"
             android:icon="@drawable/anyplace_logo_icon_actionbar_white"
             android:label="Feedback Preferences"
             android:screenOrientation="nosensor"></activity>

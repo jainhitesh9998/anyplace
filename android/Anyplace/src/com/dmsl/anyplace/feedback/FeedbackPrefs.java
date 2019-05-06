@@ -37,6 +37,8 @@
 package com.dmsl.anyplace.feedback;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -48,11 +50,9 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.provider.MediaStore.MediaColumns;
 
-import com.dmsl.anyplace.AndroidFileBrowser;
 import com.dmsl.anyplace.R;
-import com.dmsl.anyplace.logger.AnyplaceLoggerActivity;
 
-public class LoggerPrefs extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+public class FeedbackPrefs extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
 	private static final int SELECT_IMAGE = 7;
 	private static final int SELECT_PATH = 8;
@@ -66,64 +66,12 @@ public class LoggerPrefs extends PreferenceActivity implements OnSharedPreferenc
 
 		super.onCreate(savedInstanceState);
 
-		getPreferenceManager().setSharedPreferencesName(AnyplaceLoggerActivity.SHARED_PREFS_LOGGER);
+		getPreferenceManager().setSharedPreferencesName(AnyplaceFeedbackLoggerActivity.SHARED_PREFS_LOGGER);
 
 		addPreferencesFromResource(R.xml.preferences_feedback);
 
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
-		// getPreferenceManager().findPreference("image_custom").setOnPreferenceClickListener(new
-		// OnPreferenceClickListener() {
-		//
-		// @Override
-		// public boolean onPreferenceClick(Preference preference) {
-		// Intent i = new Intent(Intent.ACTION_PICK,
-		// android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-		// i.setType("image/*");
-		// startActivityForResult(i, SELECT_IMAGE);
-		// return true;
-		// }
-		// });
-
-		getPreferenceManager().findPreference("folder_browser").setOnPreferenceClickListener(new OnPreferenceClickListener() {
-
-			@Override
-			public boolean onPreferenceClick(Preference preference) {
-
-				Intent i = new Intent(getBaseContext(), AndroidFileBrowser.class);
-
-				Bundle extras = new Bundle();
-				extras.putBoolean("selectFolder", true);
-				SharedPreferences preferences = getSharedPreferences("LoggerPreferences", MODE_PRIVATE);
-				extras.putString("defaultPath", preferences.getString("folder_browser", ""));
-				i.putExtras(extras);
-
-				startActivityForResult(i, SELECT_PATH);
-				return true;
-			}
-		});
-		
-		getPreferenceManager().findPreference("add_building").setOnPreferenceClickListener(new OnPreferenceClickListener() {
-
-			@Override
-			public boolean onPreferenceClick(Preference preference) {
-				
-				Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://anyplace.cs.ucy.ac.cy/architect/"));
-				startActivity(browserIntent);
-				return true;
-			}
-		});
-
-		getPreferenceManager().findPreference("refresh_building").setOnPreferenceClickListener(new OnPreferenceClickListener() {
-			@Override
-			public boolean onPreferenceClick(Preference preference) {
-				Intent returnIntent = new Intent();
-				returnIntent.putExtra("action", Action.REFRESH_BUILDING);
-				setResult(RESULT_OK, returnIntent);
-				finish();
-				return true;
-			}
-		});
 
 	}
 
@@ -134,7 +82,56 @@ public class LoggerPrefs extends PreferenceActivity implements OnSharedPreferenc
 
 		SharedPreferences customSharedPreference;
 
-		customSharedPreference = getSharedPreferences("LoggerPreferences", MODE_PRIVATE);
+		customSharedPreference = getSharedPreferences("FeedbackPreferences", MODE_PRIVATE);
+
+		getPreferenceManager().findPreference("Short_Desc").setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+
+				final String[] names = getResources().getStringArray(R.array.AlgorithmsNames);
+				final String[] descriptions = getResources().getStringArray(R.array.AlgorithmsDescriptions);
+
+				// TODO Auto-generated method stub
+				AlertDialog.Builder builder = new AlertDialog.Builder(FeedbackPrefs.this);
+
+				builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+						// Show something if does not exit the app
+						dialog.dismiss();
+					}
+				});
+
+				builder.setTitle("Algorithms Short Description");
+				builder.setSingleChoiceItems(names, -1, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						switch (item) {
+							case 0:
+								popup_msg(descriptions[0], names[0], 0);
+								break;
+							case 1:
+								popup_msg(descriptions[1], names[1], 0);
+								break;
+							case 2:
+								popup_msg(descriptions[2], names[2], 0);
+								break;
+							case 3:
+								popup_msg(descriptions[3], names[3], 0);
+								break;
+						}
+
+					}
+				});
+
+				AlertDialog alert = builder.create();
+
+				alert.show();
+				return true;
+
+			}
+		});
 
 		switch (requestCode) {
 
@@ -192,6 +189,24 @@ public class LoggerPrefs extends PreferenceActivity implements OnSharedPreferenc
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
+	}
+
+	private void popup_msg(String msg, String title, int imageID) {
+
+		AlertDialog.Builder alert_box = new AlertDialog.Builder(this);
+		alert_box.setTitle(title);
+		alert_box.setMessage(msg);
+		alert_box.setIcon(imageID);
+
+		alert_box.setNeutralButton("Hide", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		});
+
+		AlertDialog alert = alert_box.create();
+		alert.show();
 	}
 
 }
