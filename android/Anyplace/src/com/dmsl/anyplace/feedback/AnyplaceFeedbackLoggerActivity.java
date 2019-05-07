@@ -70,8 +70,14 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -94,6 +100,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
@@ -107,10 +114,30 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+
 public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity implements OnSharedPreferenceChangeListener, GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener, LocationListener, OnMapClickListener, AnyplaceTracker.TrackedLocAnyplaceTrackerListener,
         AnyplaceTracker.ErrorAnyplaceTrackerListener, AnyplaceTracker.WifiResultsAnyplaceTrackerListener {
     private static final String TAG = "AnyplaceFeedbackLogger";
+
+    private final String url = AnyplaceAPI.getFeedbackEndpoint();
 
     public static final String SHARED_PREFS_LOGGER = "feedback_preferences";
     private static final int PERMISSION_STORAGE_WRITE = 100;
@@ -122,9 +149,9 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     private LocationClient mLocationClient;
     private LocationRequest mLocationRequest;
     private GoogleMap mMap;
-    private Marker mMarker;
+    private Marker mMarker = null;
     private LatLng currLocation = null;
-
+    private String unknownSSID = "UnknownSSID";
     // <Load Building and Marker>
     private ClusterManager<BuildingModel> mClusterManager;
     private DownloadRadioMapTaskBuid downloadRadioMapTaskBuid;
@@ -185,12 +212,27 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     private TrackerLogicPlusIMU lpTracker;
     private Algo1Radiomap floorSelector;
     private String lastFloor;
-
+    private String dvid;
     private boolean mAutomaticGPSBuildingSelection;
+
+    public AnyplaceFeedbackLoggerActivity() throws MalformedURLException {
+    }
 //    private boolean isTrackingErrorBackground;
+
+
+    private  void resetUserMarker() {
+        this.mMarker.remove();
+        this.mMarker = null;
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState){
+
+//        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//        dvid = wifiManager.getConnectionInfo().getMacAddress();
+        dvid = android.os.Build.MANUFACTURER + " " +android.os.Build.MODEL ;
+
         mAutomaticGPSBuildingSelection = false;
         userData = new AnyUserData();
         isTrackingErrorBackground = true;
@@ -214,7 +256,114 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         btnRecord.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                ArrayList<JSONObject> wifiObject = new ArrayList<JSONObject>();
                 Log.d(TAG, "Record Button clicked");
+                final JSONObject postData = new JSONObject();
+                JSONObject gpsLocJson = new JSONObject();
+                JSONObject wifiLocJson = new JSONObject();
+                JSONObject userLocJson = new JSONObject();
+                if (mCurrentFloor == null || !mCurrentFloor.isFloorValid()) {
+                    Toast.makeText(getBaseContext(), "Load map before recording...", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (mMarker == null) {
+                    Toast.makeText(getBaseContext(), "Set User Marker", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                List<ScanResult> wifiList = wifi.getScanResults();
+                for (int i = 0; i < wifiList.size(); i++) {
+                    ScanResult scanResult = wifiList.get(i);
+                    String ssid = scanResult.SSID;
+                    JSONObject temp = new JSONObject();
+                    try {
+                        if (ssid == null || scanResult.SSID.isEmpty()) {
+                            temp.put("ssid", unknownSSID);
+                        } else {
+                            temp.put("ssid", ssid);
+                        }
+                        temp.put("bssid", scanResult.BSSID);
+                        temp.put("level", scanResult.level);
+                    } catch (JSONException e) {
+                        resetUserMarker();
+                        Toast.makeText(getBaseContext(), "Json Error", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    wifiObject.add(temp);
+                }
+
+
+                try {
+                    postData.put("buid",mCurrentBuilding.buid);
+                    postData.put("floor",mCurrentFloor.floor_number);
+                    postData.put("dvid",dvid);
+                    postData.put("raw_radio",wifiObject);
+
+                    gpsLocJson.put("lat", gpsMarker.getPosition().latitude);
+                    gpsLocJson.put("lon", gpsMarker.getPosition().longitude);
+                    postData.put("gps",gpsLocJson);
+
+                    wifiLocJson.put("lat", wifiMarker.getPosition().latitude);
+                    wifiLocJson.put("lon", wifiMarker.getPosition().longitude);
+                    postData.put("wifi",wifiLocJson);
+
+                    userLocJson.put("lat", mMarker.getPosition().latitude);
+                    userLocJson.put("lon", mMarker.getPosition().longitude);
+                    postData.put("user",userLocJson);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getBaseContext(), "Json Error", Toast.LENGTH_SHORT).show();
+                    resetUserMarker();
+                    return;
+                }
+                Log.d(TAG, postData.toString());
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        StringEntity se = null;
+                        try {
+                            se = new StringEntity(postData.toString());
+                            se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                        HttpResponse response = null;
+                        HttpParams httpParameters = new BasicHttpParams();
+                        HttpConnectionParams.setConnectionTimeout(httpParameters, 20000); // 20seconds
+                        HttpConnectionParams.setSoTimeout(httpParameters, 20000); // 20 seconds
+                        HttpClient httpClient = new DefaultHttpClient(httpParameters);
+                        HttpPost httpPost = new HttpPost(url);
+                        Log.d(TAG,url);
+                        httpPost.setEntity(se);
+                        httpPost.setParams(httpParameters);
+                        HttpContext localContext = new BasicHttpContext();
+
+
+                        try {
+                            response = httpClient.execute(httpPost, localContext);
+                        } catch (IOException e) {
+                            Looper.prepare();
+                            Log.e(TAG,"Error In Request");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getBaseContext(), "Error in Request", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            e.printStackTrace();
+                            return;
+                        }
+                        StatusLine statusLine = response.getStatusLine();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getBaseContext(), "Data is Logged", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        Log.d(TAG,statusLine.toString());
+                    }
+                }).start();
+                resetUserMarker();
             }
         });
 
@@ -727,6 +876,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         boolean isWifiOn = wifi.isWifiEnabled();
         boolean isOnline = NetworkUtils.isOnline(AnyplaceFeedbackLoggerActivity.this);
+//        dvid = wifi.getConnectionInfo().getMacAddress();
 
         if (!isOnline) {
             AndroidUtils.showWifiSettings(this, "No Internet Connection", null, checkGPS);
@@ -1353,7 +1503,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
                 List<ScanResult> wifiList = wifi.getScanResults();
                 scanResults.setText("AP : " + wifiList.size());
-
                 // If we are not in an active sampling session we have to skip
                 // this intent
 
