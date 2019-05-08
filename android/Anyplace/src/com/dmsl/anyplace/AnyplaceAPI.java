@@ -61,8 +61,6 @@ public class AnyplaceAPI {
 	// Load All Building's Floors and Radiomaps
 	public final static Boolean PLAY_STORE = true;
 
-	public final static Boolean DEBUG_LOCALSERVER = false;
-
 	// private static String server ="http://thinklambros.in.cs.ucy.ac.cy:9000";
 	// private static String server ="http://anyplace.in.cs.ucy.ac.cy";
 	// private static String server = "https://anyplace.rayzit.com";
@@ -90,7 +88,7 @@ public class AnyplaceAPI {
 	private final static String FLOOR_PLAN_DOWNLOAD = "/anyplace/floorplans";
 	private final static String FLOOR_TILES_ZIP_DOWNLOAD = "/anyplace/floortiles/zip";
 
-	private final static String FEEDBACK_ENDPOINT = "/feedback";
+	private final static String FEEDBACK_ENDPOINT = "/anyplace/feedback/add_location_feeback";
 
 	public static String predictFloorAlgo1() throws MalformedURLException {
 		return new URL(getServerIPAddress(), PREDICT_FLOOR_ALGO1).toString();
@@ -166,12 +164,7 @@ public class AnyplaceAPI {
 
 	// ------------------------------------------------
 	public static String getFeedbackEndpoint() throws MalformedURLException {
-		if (DEBUG_LOCALSERVER){
-			return new URL(new URL("http://192.168.1.101:5000"), FEEDBACK_ENDPOINT).toString();
-		} else {
-			return new URL(getServerIPAddress(), FEEDBACK_ENDPOINT).toString();
-		}
-
+		return new URL(getServerIPAddress(), FEEDBACK_ENDPOINT).toString();
 	}
 
 }

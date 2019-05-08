@@ -298,17 +298,17 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                     postData.put("dvid",dvid);
                     postData.put("raw_radio",wifiObject);
 
-                    gpsLocJson.put("lat", gpsMarker.getPosition().latitude);
-                    gpsLocJson.put("lon", gpsMarker.getPosition().longitude);
-                    postData.put("gps",gpsLocJson);
+                    gpsLocJson.put("lat", Double.toString(gpsMarker.getPosition().latitude));
+                    gpsLocJson.put("lon", Double.toString(gpsMarker.getPosition().longitude));
+                    postData.put("gps",gpsLocJson.toString());
 
-                    wifiLocJson.put("lat", wifiMarker.getPosition().latitude);
-                    wifiLocJson.put("lon", wifiMarker.getPosition().longitude);
-                    postData.put("wifi",wifiLocJson);
+                    wifiLocJson.put("lat", Double.toString(wifiMarker.getPosition().latitude));
+                    wifiLocJson.put("lon", Double.toString(wifiMarker.getPosition().longitude));
+                    postData.put("wifi",wifiLocJson.toString());
 
-                    userLocJson.put("lat", mMarker.getPosition().latitude);
-                    userLocJson.put("lon", mMarker.getPosition().longitude);
-                    postData.put("user",userLocJson);
+                    userLocJson.put("lat", Double.toString(mMarker.getPosition().latitude));
+                    userLocJson.put("lon", Double.toString(mMarker.getPosition().longitude));
+                    postData.put("usr",userLocJson.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Toast.makeText(getBaseContext(), "Json Error", Toast.LENGTH_SHORT).show();

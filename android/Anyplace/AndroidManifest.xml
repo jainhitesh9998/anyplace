@@ -176,11 +176,11 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCOBkJz3V7H-uFHzi8vqcJGwZIK9bBnOmM" />
+            android:value="AIzaSyBKEpcm2nh-1AUhHZ6ItgsScEY5adXLJKU" />
 
         <meta-data
             android:name="google.directions.API_KEY"
-            android:value="AIzaSyCOBkJz3V7H-uFHzi8vqcJGwZIK9bBnOmM" />
+            android:value="AIzaSyBKEpcm2nh-1AUhHZ6ItgsScEY5adXLJKU" />
     </application>
 
 </manifest>
