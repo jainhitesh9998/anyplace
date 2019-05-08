@@ -54,19 +54,18 @@
 
         <Button
             android:id="@+id/recordBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/logger_btn_record"
+            android:layout_width="178dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="0dip"
-            android:layout_marginLeft="0dip"
+            android:layout_marginBottom="5dp"
+            android:layout_centerHorizontal="true"
             android:background="@drawable/bordered_rect"
             android:drawableLeft="@android:drawable/presence_invisible"
             android:padding="10dip"
             android:scaleType="center"
             android:text="Log data"
             android:textColor="#ffffff"
-            android:visibility="invisible" />
+            android:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/progressBar"

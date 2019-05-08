@@ -131,7 +131,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-
 public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity implements OnSharedPreferenceChangeListener, GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener, LocationListener, OnMapClickListener, AnyplaceTracker.TrackedLocAnyplaceTrackerListener,
         AnyplaceTracker.ErrorAnyplaceTrackerListener, AnyplaceTracker.WifiResultsAnyplaceTrackerListener {
@@ -206,7 +205,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
     // AnyplaceTracker
     private SensorsMain sensorsMain; // acceleration and orientation
-//    private MovementDetector movementDetector; // walking vs standing
+    //    private MovementDetector movementDetector; // walking vs standing
     private SensorsStepCounter sensorsStepCounter; // step counter
 
     private TrackerLogicPlusIMU lpTracker;
@@ -220,18 +219,17 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 //    private boolean isTrackingErrorBackground;
 
 
-    private  void resetUserMarker() {
+    private void resetUserMarker() {
         this.mMarker.remove();
         this.mMarker = null;
     }
 
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
-
+    public void onCreate(Bundle savedInstanceState) {
 //        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 //        dvid = wifiManager.getConnectionInfo().getMacAddress();
-        dvid = android.os.Build.MANUFACTURER + " " +android.os.Build.MODEL ;
+        dvid = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL;
 
         mAutomaticGPSBuildingSelection = false;
         userData = new AnyUserData();
@@ -293,22 +291,22 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
 
                 try {
-                    postData.put("buid",mCurrentBuilding.buid);
-                    postData.put("floor",mCurrentFloor.floor_number);
-                    postData.put("dvid",dvid);
-                    postData.put("raw_radio",wifiObject);
+                    postData.put("buid", mCurrentBuilding.buid);
+                    postData.put("floor", mCurrentFloor.floor_number);
+                    postData.put("dvid", dvid);
+                    postData.put("raw_radio", wifiObject);
 
                     gpsLocJson.put("lat", Double.toString(gpsMarker.getPosition().latitude));
                     gpsLocJson.put("lon", Double.toString(gpsMarker.getPosition().longitude));
-                    postData.put("gps",gpsLocJson.toString());
+                    postData.put("gps", gpsLocJson.toString());
 
                     wifiLocJson.put("lat", Double.toString(wifiMarker.getPosition().latitude));
                     wifiLocJson.put("lon", Double.toString(wifiMarker.getPosition().longitude));
-                    postData.put("wifi",wifiLocJson.toString());
+                    postData.put("wifi", wifiLocJson.toString());
 
                     userLocJson.put("lat", Double.toString(mMarker.getPosition().latitude));
                     userLocJson.put("lon", Double.toString(mMarker.getPosition().longitude));
-                    postData.put("usr",userLocJson.toString());
+                    postData.put("usr", userLocJson.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Toast.makeText(getBaseContext(), "Json Error", Toast.LENGTH_SHORT).show();
@@ -333,7 +331,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                         HttpConnectionParams.setSoTimeout(httpParameters, 20000); // 20 seconds
                         HttpClient httpClient = new DefaultHttpClient(httpParameters);
                         HttpPost httpPost = new HttpPost(url);
-                        Log.d(TAG,url);
+                        Log.d(TAG, url);
                         httpPost.setEntity(se);
                         httpPost.setParams(httpParameters);
                         HttpContext localContext = new BasicHttpContext();
@@ -343,7 +341,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                             response = httpClient.execute(httpPost, localContext);
                         } catch (IOException e) {
                             Looper.prepare();
-                            Log.e(TAG,"Error In Request");
+                            Log.e(TAG, "Error In Request");
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -360,7 +358,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                                 Toast.makeText(getBaseContext(), "Data is Logged", Toast.LENGTH_SHORT).show();
                             }
                         });
-                        Log.d(TAG,statusLine.toString());
+                        Log.d(TAG, statusLine.toString());
                     }
                 }).start();
                 resetUserMarker();
@@ -383,12 +381,12 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                         @Override
                         public void onSuccess(String result, List<BuildingModel> buildings) {
                             FetchNearBuildingsTask nearest = new FetchNearBuildingsTask();
-                            nearest.run(buildings.iterator(), gpsMarker.getPosition().latitude,gpsMarker.getPosition().longitude, 100 );
-                            if(nearest.buildings.size() > 0){
+                            nearest.run(buildings.iterator(), gpsMarker.getPosition().latitude, gpsMarker.getPosition().longitude, 100);
+                            if (nearest.buildings.size() > 0) {
                                 //todo add loading building
                                 bypassSelectBuildingActivity(nearest.buildings.get(0));
                                 Log.d(TAG, "found buildings");
-                            } else{
+                            } else {
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(gpsMarker.getPosition(), mInitialZoomLevel));
                             }
                         }
@@ -446,12 +444,11 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
         //set location from GPS
         mLocationRequest = LocationRequest.create();
+//        mLocationClient.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, new MyLocationListener());
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(2000);
         mLocationRequest.setFastestInterval(1000);
-
-        mLocationClient = new LocationClient(this,this, this);
-
+        mLocationClient = new LocationClient(this, this, this);
 
 
         PreferenceManager.setDefaultValues(this, SHARED_PREFS_LOGGER, MODE_PRIVATE, R.xml.preferences_feedback, true);
@@ -476,7 +473,6 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
         }
 
 
-
         requestForPermissions();
     }
 
@@ -493,7 +489,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             } else {
                 setUpMapIfNeeded();
             }
-        }else{
+        } else {
             setUpMapIfNeeded();
         }
     }
@@ -535,7 +531,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             // draw the location of the new position
             gpsMarker.remove();
         }
-        Log.d(TAG,"GPS Location " + gps.toString());
+        Log.d(TAG, "GPS Location " + gps.toString());
         MarkerOptions marker = new MarkerOptions();
         marker.position(new LatLng(gps.dlat, gps.dlon));
         marker.title("User").snippet("Estimated Position");
@@ -556,7 +552,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             if (wifiMarker != null) {
                 wifiMarker.remove();
             }
-            Log.d(TAG,"WiFi Location " + location.toString());
+            Log.d(TAG, "WiFi Location " + location.toString());
             MarkerOptions marker = new MarkerOptions();
             marker.position(new LatLng(location.dlat, location.dlon));
             marker.title("User").snippet("Estimated Position");
@@ -687,6 +683,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             }
         });
     }
+
     private void initMap() {
         // Sets the map type to be NORMAL - ROAD mode
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -799,7 +796,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             // is found or notify the user
             mLocationClient.requestLocationUpdates(mLocationRequest, this);
             if (currentLocation != null) {
-                onLocationChanged(currentLocation);
+                    onLocationChanged(currentLocation);
             }
         }
 
@@ -813,14 +810,14 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.d(TAG, "Play Services connection failed");
-        if(connectionResult.hasResolution()) {
+        if (connectionResult.hasResolution()) {
             try {
-                connectionResult.startResolutionForResult(this,LOCATION_CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                connectionResult.startResolutionForResult(this, LOCATION_CONNECTION_FAILURE_RESOLUTION_REQUEST);
             } catch (IntentSender.SendIntentException e) {
                 e.printStackTrace();
             }
         } else {
-            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(),this,0);
+            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this, 0);
         }
     }
 
@@ -872,12 +869,9 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
                 }
             }
         };
-
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         boolean isWifiOn = wifi.isWifiEnabled();
         boolean isOnline = NetworkUtils.isOnline(AnyplaceFeedbackLoggerActivity.this);
-//        dvid = wifi.getConnectionInfo().getMacAddress();
-
         if (!isOnline) {
             AndroidUtils.showWifiSettings(this, "No Internet Connection", null, checkGPS);
         } else if (!isWifiOn) {

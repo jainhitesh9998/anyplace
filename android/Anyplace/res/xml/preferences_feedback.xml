@@ -3,50 +3,6 @@
     android:key="pref_screen_key">
 
 
-
-    <PreferenceCategory android:title="@string/logger_uploading_title" >
-
-        <!--
-        <EditTextPreference
-            android:key="serverIP"
-            android:maxLength="15"
-            android:summary="@string/server_IP_summary"
-            android:title="@string/server_IP_title" >
-        </EditTextPreference>
-
-        <EditTextPreference
-            android:inputType="number"
-            android:key="serverPORT"
-            android:maxLength="5"
-            android:summary="@string/server_PORT_summary"
-            android:title="@string/server_PORT_title" >
-        </EditTextPreference>
-        -->
-
-        <EditTextPreference
-            android:defaultValue="anonymous"
-            android:key="username"
-            android:summary="@string/logger_server_Username_summary"
-            android:title="@string/logger_server_Username_title" >
-        </EditTextPreference>
-        <EditTextPreference
-            android:defaultValue="anonymous"
-            android:inputType="textPassword"
-            android:key="password"
-            android:summary="@string/logger_server_Password_summary"
-            android:title="@string/logger_server_Password_title" >
-        </EditTextPreference>
-    </PreferenceCategory>
-    <PreferenceCategory android:title="@string/logger_others_title" >
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="skipHelpMessage"
-            android:summaryOff="Show"
-            android:summaryOn="Hide"
-            android:title="Help Messages" />
-
-
-    </PreferenceCategory>
     <PreferenceCategory android:title="Algorithms" >
         <ListPreference
             android:defaultValue="WKNN"
@@ -55,10 +11,5 @@
             android:key="TrackingAlgorithm"
             android:summary="@string/algorithms_summary"
             android:title="@string/algorithms_title" />
-
-        <Preference
-            android:key="Short_Desc"
-            android:summary="Choose an algorithm to learn about it"
-            android:title="Short Description" />
     </PreferenceCategory>
 </PreferenceScreen>
