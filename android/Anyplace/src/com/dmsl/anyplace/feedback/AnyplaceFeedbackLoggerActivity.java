@@ -157,6 +157,7 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
     private SearchTypes searchType = null;
     private Marker gpsMarker = null;
     private Marker wifiMarker = null;
+    private Location gpsLocation = null;
     private float bearing;
     //Button That fixes the GPS Co-ordinates if not fixed
     private ImageButton btnTrackme;
@@ -298,6 +299,13 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
 
                     gpsLocJson.put("lat", Double.toString(gpsMarker.getPosition().latitude));
                     gpsLocJson.put("lon", Double.toString(gpsMarker.getPosition().longitude));
+
+                    if (gpsLocation != null) {
+                        gpsLocJson.put("acc", Float.toString(gpsLocation.getAccuracy()));
+                    } else {
+                        gpsLocJson.put("acc", "0.0");
+                    }
+
                     postData.put("gps", gpsLocJson.toString());
 
                     wifiLocJson.put("lat", Double.toString(wifiMarker.getPosition().latitude));
@@ -908,9 +916,11 @@ public class AnyplaceFeedbackLoggerActivity extends SherlockFragmentActivity imp
             Log.d(TAG, "OnLocationChanged Called");
             GeoPoint gps;
             userData.setLocationGPS(location);
+            this.gpsLocation = location;
             if (AnyplaceAPI.DEBUG_WIFI) {
                 gps = AnyUserData.fakeGPS();
             } else {
+                Log.d("GPS Accuracy", Float.toString(location.getAccuracy()));
                 gps = new GeoPoint(location.getLatitude(), location.getLongitude());
             }
             if (mAutomaticGPSBuildingSelection) {
