@@ -91,14 +91,18 @@ public class LoggerWiFi {
 				long timestamp = System.currentTimeMillis();
 
 				for (int i = 0; i < wifiList.size(); i++) {
+					Log.d("wifi_capabilities: ", wifiList.get(i).capabilities + "\nfrequency: " + Integer.toString(wifiList.get(i).frequency)
+							+ "\nchannel_width: " + Integer.toString(wifiList.get(i).channelWidth)
+							+ "\ncenter_freq0: " + Integer.toString(wifiList.get(i).centerFreq0) + "\ncenter_freq1: " + Integer.toString(wifiList.get(i).centerFreq1));
 					//todo add a condition to use ssid or not
 					LogRecordMap lr;
+					String objectid = android.os.Build.MANUFACTURER  + android.os.Build.MODEL;
 					if(LoggerWiFi.sample_ssid){
 						String ssid = wifiList.get(i).SSID;
 						if(ssid == null || wifiList.get(i).SSID.isEmpty()){
-							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, unknownSsid);
+							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, unknownSsid, objectid, wifiList.get(i).frequency, wifiList.get(i).capabilities);
 						} else {
-							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, ssid);
+							lr = new LogRecordMap(timestamp, lat, lng, raw_heading, isWalking, wifiList.get(i).BSSID, wifiList.get(i).level, ssid, objectid, wifiList.get(i).frequency, wifiList.get(i).capabilities);
 						}
 
 					} else {
@@ -208,7 +212,7 @@ public class LoggerWiFi {
 		if (!LoggerWiFi.sample_ssid){
 			header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, Floor, BUID\n";
 		} else {
-			header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, SSID, Floor, BUID\n";
+			header = "# Timestamp, X, Y, HEADING, MAC Address of AP, RSS, SSID, ObjectID, Frequency, Capabilities, Floor, BUID\n";
 		}
 
 		LogRecordMap writeLR;

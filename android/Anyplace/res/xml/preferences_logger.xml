@@ -69,8 +69,8 @@
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sample_ssid"
-            android:title="SSID"
-            android:summary="Enable SSID Sampling" />
+            android:title="Other Parameters"
+            android:summary="Enable Sampling of parameters Like Object ID, Frequency and Capabilities" />
 
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/logger_storing_title" >

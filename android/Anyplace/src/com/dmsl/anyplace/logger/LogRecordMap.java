@@ -48,6 +48,9 @@ public class LogRecordMap implements Serializable {
 	public String bssid;
 	public int rss;
 	public String ssid;
+	public String objectid;
+	public int frequency;
+	public String capabilities;
 
 	public LogRecordMap(long ts, double lat, double lng, float heading, boolean walking, String bssid, int rss) {
 		super();
@@ -60,7 +63,7 @@ public class LogRecordMap implements Serializable {
 		this.rss = rss;
 	}
 
-	public LogRecordMap(long ts, double lat, double lng, float heading, boolean walking, String bssid, int rss, String ssid) {
+	public LogRecordMap(long ts, double lat, double lng, float heading, boolean walking, String bssid, int rss, String ssid, String objectid, int frequency, String capabilities) {
 		super();
 		this.ts = ts;
 		this.lng = lng;
@@ -70,6 +73,9 @@ public class LogRecordMap implements Serializable {
 		this.bssid = bssid;
 		this.rss = rss;
 		this.ssid = ssid;
+		this.objectid=objectid;
+		this.frequency=frequency;
+		this.capabilities=capabilities;
 	}
 
 	public String toString() {
@@ -78,7 +84,8 @@ public class LogRecordMap implements Serializable {
 		if (ssid==null || ssid.isEmpty()) {
 			str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss);
 		} else {
-			str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss) + " " + String.valueOf(ssid);
+			str = String.valueOf(ts) + " " + String.valueOf(lat) + " " + String.valueOf(lng) + " " + String.valueOf(heading) + " " + String.valueOf(bssid) + " " + String.valueOf(rss) + " " + String.valueOf(ssid)
+			+ " " + String.valueOf(objectid) +  " " + String.valueOf(frequency) + " " + String.valueOf(capabilities);
 		}
 		return str;
 	}

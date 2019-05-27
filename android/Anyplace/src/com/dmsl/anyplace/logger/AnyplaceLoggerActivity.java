@@ -1585,9 +1585,9 @@ public class AnyplaceLoggerActivity extends SherlockFragmentActivity implements 
 			Boolean sample_ssid = preferences.getBoolean(key.toString(),false);
 			LoggerWiFi.sample_ssid = sample_ssid;
 			if(sample_ssid){
-				Toast.makeText(getBaseContext(), "SSID recording Enabled", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getBaseContext(), "Other Parameters recording Enabled", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(getBaseContext(), "SSID recording Disabled", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getBaseContext(), "Other Parameters recording Disabled", Toast.LENGTH_SHORT).show();
 			}
 
 			Log.d("AnyplaceLoggerActivity", sample_ssid.toString());
